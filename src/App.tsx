@@ -1,28 +1,14 @@
-// App.tsx
 import './App.scss';
 import React, { useState } from 'react';
 import { TodoList } from './components/TodoList';
 import todosFromServer from './api/todos';
 import usersFromServer from './api/users';
-
-type User = {
-  id: number;
-  name: string;
-  username: string;
-  email: string;
-};
-
-type Todo = {
-  id: number;
-  title: string;
-  completed: boolean;
-  user: User;
-};
+import { Todo} from './types';
 
 export const App = () => {
-  const initialTodos: Todo[] = todosFromServer.map(todo => {
-    const user = usersFromServer.find(u => u.id === todo.userId)!;
-    return { ...todo, user };
+  const initialTodos: Todo[] = todosFromServer.map((serverTodo) => {
+    const foundUser = usersFromServer.find((user) => user.id === serverTodo.userId)!;
+    return { ...serverTodo, user: foundUser, userId: foundUser.id };
   });
 
   const [todos, setTodos] = useState<Todo[]>(initialTodos);
@@ -31,30 +17,35 @@ export const App = () => {
   const [titleError, setTitleError] = useState('');
   const [userError, setUserError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
     let hasError = false;
 
     if (!title.trim()) {
       setTitleError('Please enter a title');
       hasError = true;
+    } else {
+      setTitleError('');
     }
 
     if (!selectedUserId) {
       setUserError('Please choose a user');
       hasError = true;
+    } else {
+      setUserError('');
     }
 
     if (hasError) return;
 
-    const user = usersFromServer.find(u => u.id === Number(selectedUserId))!;
+    const selectedUser = usersFromServer.find((user) => user.id === Number(selectedUserId))!;
 
     const newTodo: Todo = {
-      id: Math.max(...todos.map(t => t.id)) + 1,
+      id: Math.max(...todos.map((todo) => todo.id)) + 1,
       title,
       completed: false,
-      user,
+      user: selectedUser,
+      userId: selectedUser.id, // важливо додати userId
     };
 
     setTodos([...todos, newTodo]);
@@ -77,9 +68,9 @@ export const App = () => {
               data-cy="titleInput"
               placeholder="Enter a title"
               value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (titleError) setTitleError(''); // Ховаємо помилку при зміні
+              onChange={(event) => {
+                setTitle(event.target.value);
+                if (titleError) setTitleError('');
               }}
             />
           </label>
@@ -92,9 +83,9 @@ export const App = () => {
             <select
               data-cy="userSelect"
               value={selectedUserId}
-              onChange={(e) => {
-                setSelectedUserId(e.target.value);
-                if (userError) setUserError(''); // Ховаємо помилку при зміні
+              onChange={(event) => {
+                setSelectedUserId(event.target.value);
+                if (userError) setUserError('');
               }}
             >
               <option value="">Choose a user</option>

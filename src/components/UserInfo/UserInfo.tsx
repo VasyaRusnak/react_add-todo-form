@@ -1,12 +1,8 @@
 // UserInfo.tsx
 import React from 'react';
+import {  User } from '../../types';
 
-type User = {
-  id: number;
-  name: string;
-  username: string;
-  email: string;
-};
+
 
 type Props = {
   user: User;
